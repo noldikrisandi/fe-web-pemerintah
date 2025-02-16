@@ -1,54 +1,137 @@
-import React from 'react';
-import { Box, Container, Button, Heading, Text, Stack, VStack, useBreakpointValue } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import {
+  Box, Icon, Spinner, Text, VStack, Stack
+} from "@chakra-ui/react";
+import { FaEdit, FaList, FaUser } from "react-icons/fa";
+import apiConnection from "../api/apiconnection";
+import SemuaAspirasi from "./AspirasiForHome";
 
 const Home = () => {
-  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' }); // Responsif button size
+  const [aspirations, setAspirations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAspirations = async () => {
+      try {
+        const response = await apiConnection.get("/aspirations");
+        const data = response.data.data;
+
+        // Urutan status
+        const statusOrder = ["", "Menunggu", "Diproses", "Pending", "Selesai", "Ditolak"];
+
+        // Kelompokkan aspirasi berdasarkan status dan batasi 3 per status
+        const groupedAspirations = {};
+        statusOrder.forEach((status) => (groupedAspirations[status] = []));
+        data.forEach((aspirasi) => {
+          const status = aspirasi.status || "Tanpa Status";
+          if (!groupedAspirations[status]) {
+            groupedAspirations[status] = [];
+          }
+          if (groupedAspirations[status].length < 3) {
+            groupedAspirations[status].push(aspirasi);
+          }
+        });
+
+        // Gabungkan hasilnya berdasarkan urutan status
+        const filteredAspirations = statusOrder
+          .filter((status) => groupedAspirations[status].length > 0)
+          .flatMap((status) => groupedAspirations[status]);
+
+        setAspirations(filteredAspirations);
+      } catch (error) {
+        console.error("Gagal mengambil data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAspirations();
+  }, []);
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="80vh">
+        <Spinner size="xl" color="blue.500" />
+      </Box>
+    );
+  }
+
+  // Ambil nama user dari localStorage
+  const userName = localStorage.getItem('userName');
 
   return (
-    <Box as="section" bg="teal.500" color="white" py={20}>
-      <Container maxW="7xl" textAlign="center">
-        <VStack spacing={6}>
-          <Heading as="h1" size="2xl" fontWeight="bold">
-            Selamat Datang di Website Aspirasi Masyarakat
-          </Heading>
-          <Text fontSize="lg" maxW="xl" mx="auto">
-            Kami mendengarkan suara Anda! Bagikan aspirasi Anda tentang masalah di lingkungan sekitar dan bantu
-            membangun komunitas yang lebih baik.
+    <Box p={1} maxW="container.xl" mx="auto">
+      
+      {/* Selamat Datang */}
+      <Box textAlign="center" mb={6} p={4} bg="blue.50" borderRadius="lg" boxShadow="md">
+        <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" color="teal.600">
+          Selamat datang, {userName ? userName : "Pengguna!"}
+        </Text>
+        <Text fontSize={{ base: "sm", md: "md" }} color="gray.600" mt={2}>
+          Terima kasih telah menggunakan Donggala APP. Mari berkontribusi dengan menyampaikan aspirasi Anda!
+        </Text>
+      </Box>
+
+      {/* Panduan Penggunaan */}
+      <Box p={5} borderRadius="lg" boxShadow="md" bg="gray.50">
+        <VStack spacing={4} align="start">
+          <Text fontSize="lg" fontWeight="bold" color="teal.600">
+            Panduan Penggunaan Donggala APP
           </Text>
-          
-          <Stack direction={['column', 'row']} spacing={4} justify="center">
-            <Link to="/form-aspirasi">
-              <Button
-                colorScheme="orange"
-                size={buttonSize}
-                variant="solid"
-                _hover={{ bg: 'orange.400' }}
-              >
-                Kirim Aspirasi
-              </Button>
-            </Link>
-            <Link to="/semua-aspirasi">
-              <Button
-                colorScheme="teal"
-                size={buttonSize}
-                variant="outline"
-                _hover={{ borderColor: 'teal.400', color: 'teal.400' }}
-              >
-                Lihat Semua Aspirasi
-              </Button>
-            </Link>
+
+          <Stack spacing={3} direction={{ base: "column", md: "row" }}>
+            <Box display="flex" alignItems="center">
+              <Icon as={FaEdit} color="blue.500" mr={2} />
+              <Text fontSize="sm">
+                Untuk memberikan aspirasi, pilih{" "}
+                <Text as="span" fontWeight="bold" color="blue.600">
+                  Form Aspirasi
+                </Text>.
+              </Text>
+            </Box>
+
+            <Box display="flex" alignItems="center">
+              <Icon as={FaList} color="green.500" mr={2} />
+              <Text fontSize="sm">
+                Untuk melihat semua aspirasi, pilih{" "}
+                <Text as="span" fontWeight="bold" color="green.600">
+                  Semua Aspirasi
+                </Text>.
+              </Text>
+            </Box>
+
+            <Box display="flex" alignItems="center">
+              <Icon as={FaList} color="yellow.500" mr={2} />
+              <Text fontSize="sm">
+                Untuk melihat aspirasi Anda, pilih{" "}
+                <Text as="span" fontWeight="bold" color="yellow.600">
+                  Aspirasi Saya
+                </Text>.
+              </Text>
+            </Box>
+
+            <Box display="flex" alignItems="center">
+              <Icon as={FaUser} color="purple.500" mr={2} />
+              <Text fontSize="sm">
+                Untuk melihat profil, pilih{" "}
+                <Text as="span" fontWeight="bold" color="purple.600">
+                  Profil
+                </Text>.
+              </Text>
+            </Box>
           </Stack>
         </VStack>
-      </Container>
-
-      <Box bg="teal.600" py={8} mt={16}>
-        <Container maxW="7xl" textAlign="center">
-          <Text fontSize="xl">
-            Bersama, kita bisa menciptakan perubahan yang berarti! Mari berbagi aspirasi dan berbicara untuk perubahan.
-          </Text>
-        </Container>
       </Box>
+
+      {/* Info Aspirasi */}
+      <Box textAlign="center" p={3} bg="gray.50" borderRadius="md" boxShadow="sm" mt={6}>
+        <Text fontSize="sm" color="gray.600">
+          Di halaman ini, kami hanya menampilkan sebagian aspirasi yang telah diajukan oleh semua pengguna.
+        </Text>
+      </Box>
+
+      {/* Aspirasi List */}
+      <SemuaAspirasi aspirations={aspirations} />
     </Box>
   );
 };

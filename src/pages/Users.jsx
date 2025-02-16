@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Heading, Table, Thead, Tbody, Tr, Th, Td, Spinner, Text,
   Button, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
-  ModalBody, ModalFooter, Input, FormControl, FormLabel, useDisclosure
+  ModalBody, ModalFooter, Input, FormControl, FormLabel, FormErrorMessage,
+  useDisclosure
 } from '@chakra-ui/react';
 import apiConnection from '../api/apiconnection';
 
@@ -12,6 +13,7 @@ const Users = () => {
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [formData, setFormData] = useState({ id: '', email: '', nama: '', nik: '', nokk: '', wa: '' });
+  const [errors, setErrors] = useState({});
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
@@ -38,22 +40,26 @@ const Users = () => {
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const validateForm = () => {
+    let tempErrors = {};
+    if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)) {
+      tempErrors.email = 'Email harus valid';
+    }
+    if (!/^[0-9]{16}$/.test(formData.nik)) {
+      tempErrors.nik = 'NIK harus berisi 16 digit angka';
+    }
+    if (!/^[0-9]{16}$/.test(formData.nokk)) {
+      tempErrors.nokk = 'Nomor Kartu Keluarga harus berisi 16 digit angka';
+    }
+    if (!/^((\+62|08)[0-9]{9,})$/.test(formData.wa)) {
+      tempErrors.wa = 'Nomor WA harus valid dan diawali +62 atau 08';
+    }
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
   };
 
-  const validateForm = () => {
-    if (!formData.id || !formData.email || !formData.nama || !formData.nik || !formData.nokk || !formData.wa) {
-      toast({
-        title: 'Gagal!',
-        description: 'Semua field harus diisi!',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return false;
-    }
-    return true;
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async () => {
@@ -63,17 +69,13 @@ const Users = () => {
       if (selectedUser) {
         await apiConnection.put(`/users/${selectedUser.id}`, formData);
         toast({ title: 'User berhasil diperbarui!', status: 'success' });
-      } else {
-        await apiConnection.post('/users', formData);
-        toast({ title: 'User berhasil ditambahkan!', status: 'success' });
       }
       fetchUsers();
       onClose();
     } catch (err) {
-      console.error('Error:', err.response?.data);
       toast({
         title: 'Terjadi kesalahan!',
-        description: err.response?.data?.error || 'Gagal menambahkan user.',
+        description: err.response?.data?.error || 'Gagal menyimpan user.',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -93,35 +95,11 @@ const Users = () => {
     }
   };
 
-  const openModal = (user = null) => {
-    setSelectedUser(user);
-    setFormData(user ? { ...user } : { id: '', email: '', nama: '', nik: '', nokk: '', wa: '' });
-    onOpen();
-  };
-
-  if (loading) {
-    return (
-      <Box textAlign="center" p={4}>
-        <Spinner size="xl" />
-        <Text>Loading...</Text>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box textAlign="center" p={4}>
-        <Text color="red.500">Terjadi kesalahan: {error}</Text>
-      </Box>
-    );
-  }
-
   return (
     <Box maxW="7xl" mx="auto" p={4}>
       <Heading as="h1" mb={6} textAlign="center">
         Daftar Pengguna
       </Heading>
-      <Button colorScheme="blue" mb={4} onClick={() => openModal()}>Tambah User</Button>
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -129,8 +107,8 @@ const Users = () => {
             <Th>Email</Th>
             <Th>Nama</Th>
             <Th>NIK</Th>
-            <Th>NOKK</Th>
-            <Th>WA</Th>
+            <Th>Nomor Kartu Keluarga</Th>
+            <Th>Nomor WA Aktif</Th>
             <Th>Aksi</Th>
           </Tr>
         </Thead>
@@ -144,7 +122,7 @@ const Users = () => {
               <Td>{user.nokk}</Td>
               <Td>{user.wa}</Td>
               <Td>
-                <Button colorScheme="yellow" size="sm" mr={2} onClick={() => openModal(user)}>Edit</Button>
+                <Button colorScheme="yellow" size="sm" mr={2} onClick={() => { setSelectedUser(user); setFormData(user); onOpen(); }}>Edit</Button>
                 <Button colorScheme="red" size="sm" onClick={() => handleDelete(user.id)}>Hapus</Button>
               </Td>
             </Tr>
@@ -152,43 +130,38 @@ const Users = () => {
         </Tbody>
       </Table>
 
-      {/* Modal Tambah/Edit User */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{selectedUser ? 'Edit User' : 'Tambah User'}</ModalHeader>
+          <ModalHeader>Edit User</ModalHeader>
           <ModalBody>
-            {!selectedUser && (
-              <FormControl>
-                <FormLabel>ID</FormLabel>
-                <Input name="id" value={formData.id} onChange={handleChange} />
-              </FormControl>
-            )}
-            <FormControl mt={2}>
+            <FormControl isInvalid={errors.email}>
               <FormLabel>Email</FormLabel>
               <Input name="email" value={formData.email} onChange={handleChange} />
+              <FormErrorMessage>{errors.email}</FormErrorMessage>
             </FormControl>
-            <FormControl mt={2}>
+            <FormControl mt={2} isInvalid={errors.nama}>
               <FormLabel>Nama</FormLabel>
               <Input name="nama" value={formData.nama} onChange={handleChange} />
             </FormControl>
-            <FormControl mt={2}>
+            <FormControl mt={2} isInvalid={errors.nik}>
               <FormLabel>NIK</FormLabel>
               <Input name="nik" value={formData.nik} onChange={handleChange} />
+              <FormErrorMessage>{errors.nik}</FormErrorMessage>
             </FormControl>
-            <FormControl mt={2}>
-              <FormLabel>NOKK</FormLabel>
+            <FormControl mt={2} isInvalid={errors.nokk}>
+              <FormLabel>Nomor Kartu Keluarga</FormLabel>
               <Input name="nokk" value={formData.nokk} onChange={handleChange} />
+              <FormErrorMessage>{errors.nokk}</FormErrorMessage>
             </FormControl>
-            <FormControl mt={2}>
-              <FormLabel>WA</FormLabel>
+            <FormControl mt={2} isInvalid={errors.wa}>
+              <FormLabel>Nomor WA Aktif</FormLabel>
               <Input name="wa" value={formData.wa} onChange={handleChange} />
+              <FormErrorMessage>{errors.wa}</FormErrorMessage>
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
-              {selectedUser ? 'Simpan Perubahan' : 'Tambah'}
-            </Button>
+            <Button colorScheme="blue" mr={3} onClick={handleSubmit}>Simpan</Button>
             <Button onClick={onClose}>Batal</Button>
           </ModalFooter>
         </ModalContent>
