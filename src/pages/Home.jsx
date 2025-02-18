@@ -16,10 +16,9 @@ const Home = () => {
         const response = await apiConnection.get("/aspirations");
         const data = response.data.data;
 
-        // Urutan status
+        // urutkan status
         const statusOrder = ["", "Menunggu", "Diproses", "Pending", "Selesai", "Ditolak"];
 
-        // Kelompokkan aspirasi berdasarkan status dan batasi 3 per status
         const groupedAspirations = {};
         statusOrder.forEach((status) => (groupedAspirations[status] = []));
         data.forEach((aspirasi) => {
@@ -32,7 +31,6 @@ const Home = () => {
           }
         });
 
-        // Gabungkan hasilnya berdasarkan urutan status
         const filteredAspirations = statusOrder
           .filter((status) => groupedAspirations[status].length > 0)
           .flatMap((status) => groupedAspirations[status]);
@@ -56,13 +54,11 @@ const Home = () => {
     );
   }
 
-  // Ambil nama user dari localStorage
   const userName = localStorage.getItem('userName');
 
   return (
     <Box p={1} maxW="container.xl" mx="auto">
       
-      {/* Selamat Datang */}
       <Box textAlign="center" mb={6} p={4} bg="blue.50" borderRadius="lg" boxShadow="md">
         <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" color="teal.600">
           Selamat datang, {userName ? userName : "Pengguna!"}
@@ -72,7 +68,6 @@ const Home = () => {
         </Text>
       </Box>
 
-      {/* Panduan Penggunaan */}
       <Box p={5} borderRadius="lg" boxShadow="md" bg="gray.50">
         <VStack spacing={4} align="start">
           <Text fontSize="lg" fontWeight="bold" color="teal.600">
@@ -123,14 +118,12 @@ const Home = () => {
         </VStack>
       </Box>
 
-      {/* Info Aspirasi */}
       <Box textAlign="center" p={3} bg="gray.50" borderRadius="md" boxShadow="sm" mt={6}>
         <Text fontSize="sm" color="gray.600">
           Di halaman ini, kami hanya menampilkan sebagian aspirasi yang telah diajukan oleh semua pengguna.
         </Text>
       </Box>
 
-      {/* Aspirasi List */}
       <SemuaAspirasi aspirations={aspirations} />
     </Box>
   );

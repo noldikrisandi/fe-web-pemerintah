@@ -1,8 +1,7 @@
 import { Navigate } from "react-router-dom";
-import { getDataWithExpiry } from "../utils/StorageHelper";
 
 const PrivateRoute = ({ element }) => {
-  const token = getDataWithExpiry("token"); // Ambil token
+  const token = localStorage.getItem("user_token"); 
 
   if (!token) {
     return <Navigate to="/login" />;

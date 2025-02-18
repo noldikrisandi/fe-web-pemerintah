@@ -17,31 +17,26 @@ const LoginUser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Request login untuk mendapatkan token
       const response = await apiConnection.post('/login', formData);
       const token = response.data.token;
 
-      // Simpan token di localStorage
-      localStorage.setItem('token', token);
+      localStorage.setItem('user_token', token);
 
-      // Request user data setelah login menggunakan email yang sama
       const userResponse = await apiConnection.get('/users', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Cari user berdasarkan email yang sesuai
       const loggedInUser = userResponse.data.find(user => user.email === formData.email);
 
       if (loggedInUser) {
-        // Simpan nama user di localStorage
         localStorage.setItem('userName', loggedInUser.nama);
         localStorage.setItem('id', loggedInUser.id);
       }
 
       toast({ title: 'Login berhasil!', status: 'success' });
-      navigate('/'); // Ganti dengan halaman setelah login
+      navigate('/');
     } catch (err) {
       toast({
         title: 'Login gagal!',

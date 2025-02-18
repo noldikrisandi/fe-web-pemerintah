@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   Box, Button, SimpleGrid, Text, Spinner, Image, Modal, ModalOverlay, ModalContent,
-  ModalHeader, ModalBody, ModalCloseButton, VStack, HStack
+  ModalHeader, ModalBody, ModalCloseButton, VStack, HStack, Input, Textarea
 } from "@chakra-ui/react";
 import apiConnection from "../api/apiconnection";
 
@@ -9,8 +9,13 @@ const AspirasiSaya = () => {
   const [aspirations, setAspirations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imageModal, setImageModal] = useState({ isOpen: false, url: "" });
+  const [editModal, setEditModal] = useState({ isOpen: false, aspiration: null });
+  const [editedData, setEditedData] = useState({
+    jenis: "", kecamatan: "", desa: "", keterangan: "", url_foto: "", url_aspirasi: ""
+  });
 
-  // Ambil ID user dari localStorage
+  const [weeklyAspirationsCount, setWeeklyAspirationsCount] = useState(0); 
+
   const userId = localStorage.getItem("id");
 
   useEffect(() => {
@@ -34,6 +39,11 @@ const AspirasiSaya = () => {
           return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
         });
         setAspirations(sortedData);
+
+      const countResponse = await apiConnection.get(`/aspirations/count/${userId}`);
+      console.log("Jumlah Aspirasi Response:", countResponse.data); 
+      setWeeklyAspirationsCount(countResponse.data.total_aspirations); 
+
       } catch (error) {
         console.error("Gagal mengambil data:", error);
       } finally {
@@ -52,6 +62,46 @@ const AspirasiSaya = () => {
     setImageModal({ isOpen: false, url: "" });
   };
 
+  const openEditModal = (aspirasi) => {
+    setEditedData({
+      jenis: aspirasi.jenis,
+      kecamatan: aspirasi.kecamatan,
+      desa: aspirasi.desa,
+      keterangan: aspirasi.keterangan,
+      url_foto: aspirasi.url_foto || "",
+      url_aspirasi: aspirasi.url_proposal || ""
+    });
+    setEditModal({ isOpen: true, aspiration: aspirasi });
+  };
+
+  const closeEditModal = () => {
+    setEditModal({ isOpen: false, aspiration: null });
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditedData((prevData) => ({
+      ...prevData,
+      [name]: value
+    }));
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      const updatedAspiration = { ...editModal.aspiration, ...editedData };
+      await apiConnection.put(`/aspirations/${editModal.aspiration.id}`, updatedAspiration);
+     
+      setAspirations((prev) =>
+        prev.map((aspirasi) =>
+          aspirasi.id === editModal.aspiration.id ? updatedAspiration : aspirasi
+        )
+      );
+      closeEditModal();
+    } catch (error) {
+      console.error("Gagal mengedit aspirasi:", error);
+    }
+  };
+
   const getBorderColor = (status) => {
     switch (status) {
       case "Selesai":
@@ -67,6 +117,10 @@ const AspirasiSaya = () => {
     }
   };
 
+  const isEditableStatus = (status) => {
+    return !["Selesai", "Ditolak", "Diproses"].includes(status);
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="80vh">
@@ -77,9 +131,17 @@ const AspirasiSaya = () => {
 
   return (
     <Box p={5}>
+      <Box p={5} boxShadow="md" borderRadius="md" bg="white" mb={7}>
       <VStack spacing={5} mb={6} align="center">
-        <Text fontSize="xl" fontWeight="bold">Aspirasi Saya</Text>
+        <Text fontSize="2xl" fontWeight="bold" color="teal.500">
+          Aspirasi Saya
+        </Text>
+        <Text fontSize="md" color="gray.600" textAlign="center">
+          Silakan kirimkan aspirasi Anda terkait masalah yang ada di lingkungan Anda.
+        </Text>
+        <Text fontSize="md" color="gray.700" textAlign="center"> Anda telah mengirim {weeklyAspirationsCount} aspirasi dalam 7 hari ini</Text>
       </VStack>
+    </Box>
 
       {!userId ? (
         <Text textAlign="center" fontSize="lg" color="red.500">
@@ -134,19 +196,77 @@ const AspirasiSaya = () => {
                     Lihat Proposal
                   </Button>
                 )}
+                {isEditableStatus(aspirasi.status) && (
+                  <Button colorScheme="orange" size="sm" onClick={() => openEditModal(aspirasi)}>
+                    Edit
+                  </Button>
+                )}
               </HStack>
             </Box>
           ))}
         </SimpleGrid>
       )}
 
-      <Modal isOpen={imageModal.isOpen} onClose={closeImageModal} size="lg">
+      <Modal isOpen={editModal.isOpen} onClose={closeEditModal}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Gambar Aspirasi</ModalHeader>
+          <ModalHeader>Edit Aspirasi</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Image src={imageModal.url} alt="Aspirasi" w="100%" borderRadius="md" />
+            <Input
+              name="jenis"
+              value={editedData.jenis}
+              onChange={handleEditChange}
+              placeholder="Jenis Aspirasi"
+              mb={3}
+            />
+            <Input
+              name="kecamatan"
+              value={editedData.kecamatan}
+              onChange={handleEditChange}
+              placeholder="Kecamatan"
+              mb={3}
+            />
+            <Input
+              name="desa"
+              value={editedData.desa}
+              onChange={handleEditChange}
+              placeholder="Desa"
+              mb={3}
+            />
+            <Textarea
+              name="keterangan"
+              value={editedData.keterangan}
+              onChange={handleEditChange}
+              placeholder="Keterangan"
+              mb={3}
+            />
+            <Input
+              name="url_foto"
+              value={editedData.url_foto}
+              onChange={handleEditChange}
+              placeholder="URL Foto"
+              mb={3}
+            />
+            <Input
+              name="url_aspirasi"
+              value={editedData.url_aspirasi}
+              onChange={handleEditChange}
+              placeholder="URL Aspirasi"
+              mb={3}
+            />
+            <Button colorScheme="blue" onClick={handleEditSubmit}>Simpan</Button>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={imageModal.isOpen} onClose={closeImageModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Lihat Gambar</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Image src={imageModal.url} alt="Aspirasi Image" />
           </ModalBody>
         </ModalContent>
       </Modal>

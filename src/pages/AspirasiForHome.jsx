@@ -72,7 +72,7 @@ const SemuaAspirasi = () => {
               {aspirasi.keterangan}
             </Text>
             <Text color="gray.500" fontStyle="italic" mb={2}>
-              {aspirasi.Desa}, {aspirasi.kecamatan}
+              {aspirasi.desa}, {aspirasi.kecamatan}
             </Text>
             <Text color="gray.600" fontWeight="bold" mb={2}>
               Status: {aspirasi.status || "Tanpa Status"}

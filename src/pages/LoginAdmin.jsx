@@ -17,30 +17,26 @@ const LoginAdmin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Request login untuk mendapatkan token admin
-      const response = await apiConnection.post('/admins', formData);
+      const response = await apiConnection.post('/admins/login', formData);
       const token = response.data.token;
 
-      // Simpan token di localStorage
-      localStorage.setItem('token', token);
+      localStorage.setItem('admin_token', token);
 
-      // Request admin data setelah login menggunakan email yang sama
       const adminResponse = await apiConnection.get('/admins', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Cari admin berdasarkan email yang sesuai
-      const loggedInAdmin = adminResponse.data.find(admin => admin.email === formData.email);
+      const loggedInUser = adminResponse.data.find(user => user.email === formData.email);
 
-      if (loggedInAdmin) {
-        // Simpan nama admin di localStorage
-        localStorage.setItem('adminName', loggedInAdmin.nama);
+      if (loggedInUser) {
+        localStorage.setItem('idadmin', loggedInUser.id);
       }
+      
 
       toast({ title: 'Login berhasil!', status: 'success' });
-      navigate('/admin-dashboard'); // Ganti dengan halaman admin setelah login
+      navigate('/aspirasilist'); 
     } catch (err) {
       toast({
         title: 'Login gagal!',
@@ -64,10 +60,6 @@ const LoginAdmin = () => {
         </FormControl>
         <Button colorScheme="blue" width="full" type="submit">Login</Button>
       </form>
-      <Text color="gray.600" textAlign="center" mt={10} mb={3}>Silahkan registrasi jika belum memiliki akun admin</Text>
-      <Box textAlign="center" bold color="blue.500" _hover={{ color: 'blue.700', textDecoration: 'underline' }}>
-        <Link to="/admin-register">Register</Link>
-      </Box>
     </Box>
   );
 };

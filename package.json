@@ -33,7 +33,7 @@
     "react-icons": "^5.4.0",
     "react-router-dom": "^7.1.5",
     "recharts": "^2.15.1"
-  }
+  },
   "homepage": "https://noldikrisandi.github.io/fe-web-pemerintah/"
 
 }

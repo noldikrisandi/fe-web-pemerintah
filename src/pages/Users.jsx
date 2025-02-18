@@ -12,7 +12,7 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [formData, setFormData] = useState({ id: '', email: '', nama: '', nik: '', nokk: '', wa: '' });
+  const [formData, setFormData] = useState({ id: '', email: '', nama: '', nik: '', nokk: '', wa: '', status: '' });
   const [errors, setErrors] = useState({});
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
@@ -109,6 +109,7 @@ const Users = () => {
             <Th>NIK</Th>
             <Th>Nomor Kartu Keluarga</Th>
             <Th>Nomor WA Aktif</Th>
+            <Th>Status User</Th>
             <Th>Aksi</Th>
           </Tr>
         </Thead>
@@ -121,6 +122,7 @@ const Users = () => {
               <Td>{user.nik}</Td>
               <Td>{user.nokk}</Td>
               <Td>{user.wa}</Td>
+              <Td>{user.status}</Td>
               <Td>
                 <Button colorScheme="yellow" size="sm" mr={2} onClick={() => { setSelectedUser(user); setFormData(user); onOpen(); }}>Edit</Button>
                 <Button colorScheme="red" size="sm" onClick={() => handleDelete(user.id)}>Hapus</Button>
@@ -158,6 +160,11 @@ const Users = () => {
               <FormLabel>Nomor WA Aktif</FormLabel>
               <Input name="wa" value={formData.wa} onChange={handleChange} />
               <FormErrorMessage>{errors.wa}</FormErrorMessage>
+            </FormControl>
+            <FormControl mt={2} isInvalid={errors.status}>
+              <FormLabel>Status</FormLabel>
+              <Input name="status" value={formData.status} onChange={handleChange} />
+              <FormErrorMessage>{errors.status}</FormErrorMessage>
             </FormControl>
           </ModalBody>
           <ModalFooter>
