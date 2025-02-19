@@ -33,7 +33,7 @@ const routes = [
   { path: "/aspirasilist", element: <PrivateRouteAdmin element={<AspirasiList />} /> },
   { path: "/registeradmin", element: <PrivateRouteAdmin element={<RegisterAdmin />} /> },
   { path: "/admincontrollerlist", element: <PrivateRouteAdmin element={<AdminControllerList />} /> },
-  { path: "/edit", element: <PrivateRouteAdmin element={<Edit />} /> }, tidak saya fungsikan dulu
+  { path: "/edit", element: <PrivateRouteAdmin element={<Edit />} /> }, // tidak saya fungsikan dulu
 ];
 
 export default routes;
