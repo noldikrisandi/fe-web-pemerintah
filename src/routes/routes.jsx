@@ -5,7 +5,7 @@ import AspirasiList from "../pages/AspirasiList";
 import LoginAdmin from "../pages/LoginAdmin";
 import RegisterAdmin from "../pages/RegisterAdmin";
 import AdminControllerList from "../pages/AdminControllerList";
-// import Edit from "../pages/edit"; tidak saya fungsikan dulu
+import Edit from "../pages/edit"; // tidak saya fungsikan dulu
 
 
 const Home = lazy(() => import("../pages/Home"));
@@ -33,7 +33,7 @@ const routes = [
   { path: "/aspirasilist", element: <PrivateRouteAdmin element={<AspirasiList />} /> },
   { path: "/registeradmin", element: <PrivateRouteAdmin element={<RegisterAdmin />} /> },
   { path: "/admincontrollerlist", element: <PrivateRouteAdmin element={<AdminControllerList />} /> },
-  // { path: "/edit", element: <PrivateRouteAdmin element={<Edit />} /> }, tidak saya fungsikan dulu
+  { path: "/edit", element: <PrivateRouteAdmin element={<Edit />} /> }, tidak saya fungsikan dulu
 ];
 
 export default routes;
